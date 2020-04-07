@@ -5,6 +5,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"netdisk-go/db"
 	"netdisk-go/meta"
 	"netdisk-go/util"
 	"os"
@@ -15,6 +16,7 @@ import (
 // 处理函数
 
 // 上传
+// method: GET(get upload.html) POST(upload)
 func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		data, err := ioutil.ReadFile("./static/view/index.html")
@@ -51,8 +53,12 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 
 		newFile.Seek(0, 0)
 		fileMeta.FileSha1 = util.FileSha1(newFile)
-		meta.FileMetas[fileMeta.FileSha1] = fileMeta
-		meta.FileHashForTimes = append(meta.FileHashForTimes, fileMeta.FileSha1)
+		err = db.SaveFile(fileMeta)
+
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 
 		http.Redirect(w, r, "/file/upload/suc", http.StatusFound)
 	}
@@ -72,10 +78,7 @@ func GetFileMetaHandler(w http.ResponseWriter, r *http.Request) {
 	filehash := r.Form["filehash"][0]
 	fMeta := meta.FileMeta{}
 	ok := false
-	if fMeta, ok = meta.FileMetas[filehash]; !ok {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+	fMeta
 	data, err := json.Marshal(fMeta)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

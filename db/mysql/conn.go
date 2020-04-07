@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	dnDSN := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=%s",
+	dnDSN := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=%s&parseTime=true&loc=Local",
 		USER_NAME, PASS_WORD, HOST, PORT, DATABASE, CHARSET)
 	MysqlDb, MysqlDbErr = sql.Open("mysql", dnDSN)
 	if MysqlDbErr != nil {
